@@ -10,27 +10,23 @@ module fq_measure(
 timeunit 1us; timeprecision 10ns;
 
 logic [31:0] counter_i, counter_r, result;
-logic enable_count;
-logic reset;
 
 logic state;
 
 always_ff @(posedge input_freq, negedge nReset)
-	if(~nReset)	begin
+	if(~nReset)
+	begin
 		counter_i <= 0;
 		result <= 0;
-		end
+	end
 	else
 		case(state)
-	
-		0: begin
-			if(counter_r >= 1000000) begin
+		0: if(counter_r >= `REF_FREQ) begin;
 				result <= counter_i;
 				state <= 1;
 			end
-			else 
+			else
 				counter_i <= counter_i + 1;
-			end
 		
 		1: begin
 			counter_i <= 0;
@@ -41,15 +37,18 @@ always_ff @(posedge input_freq, negedge nReset)
 		endcase
 	
 always_ff @(posedge ref_freq, negedge nReset)
-	if(~nReset) 
+	if(~nReset)
+	begin
 		counter_r <= 0;
+	end
 	else
-		if(reset)
+	begin
+		if(state == 1)
 			counter_r <= 0;
 		else
 			counter_r <= counter_r + 1;
+	end
 
-assign reset = (state == 1);
 assign measured_freq = result;
 
 endmodule
